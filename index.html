@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Roster Hub</title>
+<meta name="description" content="Jadwal roster Operator dan Rider, info, dan pengumuman hub">
+<meta name="theme-color" content="#fdfbfa" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#140f0d" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Roster Hub">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script src="config.js"></script>
+<style>
+  :root{--bg:#fdfbfa;--surface:#f4f0ee;--text:#1b1412;--muted:#6f6460;--line:rgba(27,20,18,.1);--accent:#ee4928}
+  @media (prefers-color-scheme: dark){:root{--bg:#140f0d;--surface:#211b18;--text:#f6f2ef;--muted:#a89d98;--line:rgba(246,242,239,.12)}}
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+  body{display:flex;flex-direction:column;height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);overflow:hidden}
+  #frame-wrap{position:relative;flex:1;min-height:0}
+  iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg)}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;background:var(--bg);transition:opacity .25s ease}
+  .screen[hidden]{display:none}
+  .screen.fade{opacity:0;pointer-events:none}
+  .logo{width:72px;height:72px;border-radius:18px}
+  .title{font-size:20px;font-weight:600;margin:0}
+  .muted{color:var(--muted);margin:0;max-width:34ch}
+  .bar{width:120px;height:4px;border-radius:4px;background:var(--surface);overflow:hidden}
+  .bar i{display:block;width:40%;height:100%;border-radius:4px;background:var(--accent);animation:load 1.1s ease-in-out infinite}
+  @keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+  @media (prefers-reduced-motion: reduce){.bar i{animation:none;width:100%}}
+  .btn{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 20px;border-radius:10px;border:1px solid var(--line);background:var(--text);color:var(--bg);font:inherit;font-weight:500;text-decoration:none;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--text)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  #install{display:flex;align-items:center;gap:12px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--surface);font-size:14px}
+  #install[hidden]{display:none}
+  #install img{width:36px;height:36px;border-radius:9px;flex:none}
+  #install .txt{flex:1;min-width:0}
+  #install b{display:block;font-weight:600}
+  #install .btn{height:36px;padding:0 14px;font-size:14px}
+  #install .x{background:none;border:0;color:var(--muted);font-size:22px;line-height:1;padding:4px 8px;cursor:pointer}
+  .share{display:inline-block;width:14px;height:14px;vertical-align:-2px}
+</style>
+</head>
+<body>
+  <div id="frame-wrap">
+    <iframe id="app" title="Roster Hub" allow="clipboard-read; clipboard-write; web-share; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+    <div id="splash" class="screen" role="status" aria-live="polite">
+      <img class="logo" src="icons/icon-192.png" alt="">
+      <p class="title" id="splash-name">Roster Hub</p>
+      <div class="bar"><i></i></div>
+      <p class="muted" id="slow" hidden>Sinyal sedang lambat. Tunggu sebentar, atau buka lewat browser.</p>
+      <div class="row" id="slow-actions" hidden>
+        <button class="btn ghost" type="button" onclick="reloadApp()">Muat ulang</button>
+        <a class="btn" id="open-browser" target="_blank" rel="noopener">Buka di browser</a>
+      </div>
+    </div>
+
+    <div id="offline" class="screen" hidden>
+      <img class="logo" src="icons/icon-192.png" alt="">
+      <p class="title">Tidak ada koneksi internet</p>
+      <p class="muted">Roster diambil langsung dari server hub. Nyalakan data seluler atau Wi-Fi, lalu coba lagi.</p>
+      <button class="btn" type="button" onclick="reloadApp()">Coba lagi</button>
+    </div>
+
+    <div id="setup" class="screen" hidden>
+      <img class="logo" src="icons/icon-192.png" alt="">
+      <p class="title">URL aplikasi belum diisi</p>
+      <p class="muted">Buka file config.js, tempel URL Web App Apps Script (berakhiran /exec), lalu unggah ulang.</p>
+    </div>
+  </div>
+
+  <div id="install" hidden>
+    <img src="icons/icon-192.png" alt="">
+    <div class="txt" id="install-txt"></div>
+    <button class="btn" id="install-btn" type="button" hidden>Pasang</button>
+    <button class="x" id="install-x" type="button" aria-label="Tutup">×</button>
+  </div>
+
+<script>
+(function () {
+  var URL_ = String(window.ROSTER_URL || "").trim();
+  var frame = document.getElementById("app");
+  var splash = document.getElementById("splash");
+  var offline = document.getElementById("offline");
+  var loaded = false, slowTimer = null;
+  document.getElementById("splash-name").textContent = window.ROSTER_NAME || "Roster Hub";
+
+  function show(el, on) { el.hidden = !on; }
+  function startLoad() {
+    if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(URL_)) {
+      show(splash, false); show(document.getElementById("setup"), true); return;
+    }
+    document.getElementById("open-browser").href = URL_;
+    if (!navigator.onLine) { show(splash, false); show(offline, true); return; }
+    show(offline, false); show(splash, true); splash.classList.remove("fade");
+    show(document.getElementById("slow"), false); show(document.getElementById("slow-actions"), false);
+    loaded = false;
+    clearTimeout(slowTimer);
+    slowTimer = setTimeout(function () {
+      if (!loaded) { show(document.getElementById("slow"), true); show(document.getElementById("slow-actions"), true); }
+    }, 20000);
+    frame.src = URL_;
+  }
+  frame.addEventListener("load", function () {
+    if (!frame.getAttribute("src")) return;
+    loaded = true; clearTimeout(slowTimer);
+    splash.classList.add("fade");
+    setTimeout(function () { show(splash, false); }, 260);
+  });
+  window.reloadApp = function () { frame.removeAttribute("src"); startLoad(); };
+  window.addEventListener("online", function () { if (!loaded) startLoad(); });
+  window.addEventListener("offline", function () { if (!loaded) { show(splash, false); show(offline, true); } });
+  startLoad();
+
+  // ---- ajakan memasang aplikasi (hanya saat dibuka dari browser) ----
+  var standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  var ua = navigator.userAgent || "";
+  var isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var bar = document.getElementById("install"), txt = document.getElementById("install-txt"), btn = document.getElementById("install-btn");
+  var KEY = "rh-install-dismissed";
+  function dismissedRecently() { try { return Date.now() - Number(localStorage.getItem(KEY) || 0) < 7 * 864e5; } catch (e) { return false; } }
+  document.getElementById("install-x").onclick = function () { show(bar, false); try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {} };
+  var deferred = null;
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault(); deferred = e;
+    if (standalone || dismissedRecently() || isIOS) return;
+    txt.innerHTML = "<b>Pasang Roster Hub</b>Buka jadwal langsung dari layar utama HP.";
+    show(btn, true); show(bar, true);
+  });
+  btn.onclick = function () {
+    if (!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.finally(function () { deferred = null; show(bar, false); });
+  };
+  window.addEventListener("appinstalled", function () { show(bar, false); });
+  if (isIOS && !standalone && !dismissedRecently()) {
+    txt.innerHTML = '<b>Pasang di iPhone</b>Ketuk <svg class="share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Bagikan"><path d="M12 3v13"/><path d="m7 8 5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg> Bagikan, lalu Tambah ke Layar Utama';
+    show(bar, true);
+  }
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+  }
+})();
+</script>
+</body>
+</html>

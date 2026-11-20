@@ -1,0 +1,85 @@
+ROSTER HUB — APLIKASI UNTUK ANDROID & IPHONE
+============================================
+
+Folder ini membuat Roster Hub bisa dipasang di HP seperti aplikasi biasa: ada ikon di
+layar utama, terbuka layar penuh tanpa bilah browser, dan ada layar "Tidak ada koneksi"
+saat sinyal hilang. Isi aplikasinya tetap web app Apps Script Anda, jadi setiap update
+Apps Script (Deploy > New version) langsung ikut di HP. Folder ini tidak perlu diunggah
+ulang, kecuali URL /exec berubah.
+
+ISI FOLDER
+- index.html            : pembungkus aplikasi (jangan diubah)
+- config.js             : SATU-SATUNYA yang perlu diisi: URL web app
+- manifest.webmanifest  : nama, warna, ikon aplikasi
+- sw.js                 : agar ikon tetap terbuka saat sinyal lemah
+- icons/                : ikon aplikasi
+
+
+LANGKAH 1 — ISI URL (sekali saja)
+  Buka config.js dengan Notepad, ganti  TEMPEL_URL_WEB_APP_DI_SINI  dengan URL Web App
+  (Apps Script > Deploy > Manage deployments > salin Web app URL, berakhiran /exec).
+  Contoh:  window.ROSTER_URL = "https://script.google.com/macros/s/AKfy.../exec";
+
+
+LANGKAH 2 — TARUH DI INTERNET (gratis, pilih salah satu)
+
+  A. GitHub Pages (disarankan, permanen)
+     1. Buat akun di github.com.
+     2. Klik "+" > New repository. Nama mis. roster-hub, pilih Public, Create repository.
+     3. Klik "uploading an existing file". Seret SEMUA isi folder ini (index.html, config.js,
+        manifest.webmanifest, sw.js, dan folder icons) > Commit changes.
+     4. Settings > Pages > Source: "Deploy from a branch" > Branch: main, folder / (root) > Save.
+     5. Tunggu 1–2 menit. Alamat aplikasi:  https://<username>.github.io/roster-hub/
+
+  B. Netlify
+     1. Buka app.netlify.com/drop dan masuk (login) dengan akun Google / GitHub.
+     2. Seret folder ini ke halaman itu. Alamat aplikasi: https://<nama-acak>.netlify.app
+        (bisa diganti di Site settings > Change site name).
+
+  Yang terlihat publik hanya URL web app, yang memang sudah dibagikan ke manpower.
+  Tidak ada data roster di folder ini.
+
+
+LANGKAH 3 — BAGIKAN KE MANPOWER
+  Kirim alamat dari langkah 2 (bukan link /exec) lewat WhatsApp.
+
+  Android (Chrome):
+    Buka link > muncul bar "Pasang Roster Hub" di bawah > ketuk Pasang.
+    Kalau bar tidak muncul: menu ⋮ > "Instal aplikasi" / "Tambahkan ke layar utama".
+
+  iPhone (Safari):
+    Buka link di Safari > ketuk ikon Bagikan (kotak dengan panah ke atas) >
+    "Tambah ke Layar Utama" > Tambah.
+    (iOS 16.4 ke atas juga bisa dari Chrome lewat ikon Bagikan.)
+
+  Setelah itu buka dari ikon "Roster Hub" di layar utama, lalu login dengan ID seperti biasa.
+
+
+OPSIONAL — IKON SAAT LINK /exec DIBUKA LANGSUNG
+  Apps Script > Project Settings > Script properties > tambah:
+    ICON_URL = https://<alamat-aplikasi>/icons/icon-192.png
+
+
+OPSIONAL — FILE APK / PLAY STORE / APP STORE
+  Untuk pemakaian internal hub, langkah 3 sudah cukup. Kalau tetap butuh file aplikasi:
+  1. Buka pwabuilder.com, masukkan alamat dari langkah 2, klik Start.
+  2. Package For Stores >
+     - Android: unduh paket. File .apk bisa dibagikan langsung (HP perlu izin
+       "Instal aplikasi tidak dikenal"). File .aab untuk Google Play
+       (akun Google Play Console, biaya pendaftaran sekali bayar).
+     - iOS: menghasilkan proyek Xcode. Perlu Mac, akun Apple Developer (berbayar per tahun),
+       dan lolos review Apple.
+
+
+CATATAN
+- Perlu internet. Tanpa sinyal, aplikasi menampilkan layar "Tidak ada koneksi internet"
+  dengan tombol Coba lagi.
+- Login manpower (ID) tetap tersimpan 1 hari di HP, sama seperti di browser.
+- Admin: di dalam aplikasi HP, pakai "Admin? Masuk dengan username & password".
+  Masuk otomatis lewat akun Google bisa tidak berfungsi di dalam aplikasi (terutama iPhone,
+  yang memblokir cookie Google di dalam bingkai). Kalau perlu masuk lewat Google, buka link
+  /exec langsung di browser.
+- Kalau halaman lama tidak muncul (> 20 detik), aplikasi menawarkan "Muat ulang" atau
+  "Buka di browser".
+- Mengganti ikon: ganti file di folder icons dengan ukuran yang sama, lalu unggah ulang.
+  HP yang sudah memasang mungkin perlu menghapus dan memasang ulang agar ikon baru terlihat.

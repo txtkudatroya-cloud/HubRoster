@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Roster Hub",
+  "short_name": "Roster Hub",
+  "description": "Jadwal roster Operator dan Rider, info, dan pengumuman hub",
+  "lang": "id",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fdfbfa",
+  "theme_color": "#fdfbfa",
+  "categories": ["business", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
